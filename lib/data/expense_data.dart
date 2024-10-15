@@ -1,3 +1,4 @@
+import 'package:expense_tracker/data/hive_database.dart';
 import 'package:expense_tracker/datetime/date_time_helper.dart';
 import 'package:expense_tracker/models/expense_item.dart';
 import 'package:flutter/material.dart';
@@ -12,12 +13,22 @@ class ExpenseData extends ChangeNotifier {
  List <ExpenseItem> getAllExpenseList(){
    return overallExpenseList;
  }
+ // prepare data to display
+ final db = HiveDatabase();
+ void prepareData(){
+  //if there exists data, get it
+  if(db.readData().isNotEmpty){
+    overallExpenseList = db.readData();
+
+  }
+ }
 
   //add new expense
    
-   void addNewExpense(ExpenseItem addNewExpense){
-    overallExpenseList.add(addNewExpense);
+   void addNewExpense(ExpenseItem newExpense){
+    overallExpenseList.add(newExpense);
     notifyListeners();
+    db.saveData(overallExpenseList);
    }
   
 
@@ -26,24 +37,25 @@ class ExpenseData extends ChangeNotifier {
   void deleteExpense(ExpenseItem expense){
     overallExpenseList.remove(expense);
     notifyListeners();
+    db.saveData(overallExpenseList);
   }
 
   // get weekly (mon, tues, etc) from s dateTime object
-  String getDayName(DateTime ){
-    switch(DateTime.weekday){
-      case 0:
-        return 'Mon';
+  String getDayName(DateTime dateTime ){
+    switch(dateTime.weekday){
       case 1:
-        return 'Tue';
+        return 'Mon';
       case 2:
-        return 'Wed';
+        return 'Tue';
       case 3:
-        return 'Thu';
+        return 'Wed';
       case 4:
-        return 'Fri';
+        return 'Thu';
       case 5:
-        return 'Sat';
+        return 'Fri';
       case 6:
+        return 'Sat';
+      case 7:
         return 'Sun';
       default:
          return '';
@@ -60,11 +72,11 @@ class ExpenseData extends ChangeNotifier {
   
   // go backwards from today to find sunday
   for(int i=0; i<7;i++){
-    if (getDayName(today.subtract(Duration(days: i)))=='sun'){
+    if (getDayName(today.subtract(Duration(days: i))) =='Sun'){
       startOfWeek = today.subtract(Duration(days: i));
     }
   }
-  return startOfWeek?? today;
+  return startOfWeek!;
    }
 
 
